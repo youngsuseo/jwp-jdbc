@@ -12,35 +12,44 @@ import java.util.List;
 
 public class UserDao {
     public void insert(User user) {
-        String sql = "INSERT INTO USERS VALUES (?, ?, ?, ?)";
-        try(Connection con = ConnectionManager.getConnection();
-            PreparedStatement pstmt = con.prepareStatement(sql)) {
+        InsertJdbcTemplate insertJdbcTemplate = new InsertJdbcTemplate();
+        insertJdbcTemplate.insert(user, this);
+    }
 
-            pstmt.setString(1, user.getUserId());
-            pstmt.setString(2, user.getPassword());
-            pstmt.setString(3, user.getName());
-            pstmt.setString(4, user.getEmail());
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    void setValuesForInsert(User user, PreparedStatement pstmt) throws SQLException {
+        pstmt.setString(1, user.getUserId());
+        pstmt.setString(2, user.getPassword());
+        pstmt.setString(3, user.getName());
+        pstmt.setString(4, user.getEmail());
+    }
+
+    String createQueryForInsert() {
+        return "INSERT INTO USERS VALUES (?, ?, ?, ?)";
     }
 
     public void update(User user) {
-        String sql = "UPDATE USERS SET name = ?, email = ? WHERE userId = ?";
+        String sql = createQueryForUpdate();
         try(Connection con = ConnectionManager.getConnection();
             PreparedStatement pstmt = con.prepareStatement(sql)) {
 
-            pstmt.setString(1, user.getName());
-            pstmt.setString(2, user.getEmail());
-            pstmt.setString(3, user.getUserId());
+            setValuesForUpdate(user, pstmt);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public List<User> findAll() throws SQLException {
+    private void setValuesForUpdate(User user, PreparedStatement pstmt) throws SQLException {
+        pstmt.setString(1, user.getName());
+        pstmt.setString(2, user.getEmail());
+        pstmt.setString(3, user.getUserId());
+    }
+
+    private String createQueryForUpdate() {
+        return "UPDATE USERS SET name = ?, email = ? WHERE userId = ?";
+    }
+
+    public List<User> findAll() {
         String sql = "SELECT userId, password, name, email FROM USERS";
         List<User> users = new ArrayList<>();
         try(Connection con = ConnectionManager.getConnection();
