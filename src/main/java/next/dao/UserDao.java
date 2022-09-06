@@ -28,24 +28,17 @@ public class UserDao {
     }
 
     public void update(User user) {
-        String sql = createQueryForUpdate();
-        try(Connection con = ConnectionManager.getConnection();
-            PreparedStatement pstmt = con.prepareStatement(sql)) {
-
-            setValuesForUpdate(user, pstmt);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        UpdateJdbcTemplate updateJdbcTemplate = new UpdateJdbcTemplate();
+        updateJdbcTemplate.update(user, this);
     }
 
-    private void setValuesForUpdate(User user, PreparedStatement pstmt) throws SQLException {
+    void setValuesForUpdate(User user, PreparedStatement pstmt) throws SQLException {
         pstmt.setString(1, user.getName());
         pstmt.setString(2, user.getEmail());
         pstmt.setString(3, user.getUserId());
     }
 
-    private String createQueryForUpdate() {
+    String createQueryForUpdate() {
         return "UPDATE USERS SET name = ?, email = ? WHERE userId = ?";
     }
 
